@@ -15,9 +15,10 @@ const filmeDAO=require('../../model/DAO/filme.js')
 //import das controller necessarias para fazer os relacionamentos
 const controllerClassificacao = require('../classificacao/controllerClassificacao.js')
 const controllerFilmeGenero = require('../filme/controllerFilmeGenero.js')
+const filmeGeneroDAO = require('../../model/DAO/filme_genero.js');
 
 //funcao para tratar a insercao de um filme no DAO
-const inserirFilme=async function(filme, contentType){
+/*const inserirFilme=async function(filme, contentType){
     
     try {
 
@@ -47,7 +48,56 @@ const inserirFilme=async function(filme, contentType){
     } catch (error) {
         return message.ERROR_INTERNAL_SERVER_CONTROLLER //500
 }
+}*/
+
+const inserirFilme = async function(filme, contentType) {
+    try {
+        if (String(contentType).toLowerCase() == 'application/json') {
+            if (filme.nome == '' || filme.nome == undefined || filme.nome == null || filme.nome.length > 80 ||
+                filme.duracao == '' || filme.duracao == undefined || filme.duracao == null || filme.duracao.length > 5 ||
+                filme.sinopse == '' || filme.sinopse == undefined || filme.sinopse == null ||
+                filme.data_lancamento == '' || filme.data_lancamento == undefined || filme.data_lancamento == null || filme.data_lancamento.length > 10 ||
+                filme.foto_capa == undefined || filme.foto_capa.length > 200 ||
+                filme.link_trailer == undefined || filme.link_trailer.length > 200 ||
+                filme.id_classificacao == undefined || filme.id_classificacao == null || isNaN(filme.id_classificacao)
+            ) {
+                return message.ERROR_REQUIRED_FIELDS; //400
+            } else {
+                // Insere o filme no banco de dados
+                let resultFilme = await filmeDAO.insertFilme(filme);
+                
+                if (resultFilme) {
+                    // Se houver gêneros para associar
+                    if (filme.genero && Array.isArray(filme.genero)) {
+                        // Obtém o ID do filme inserido
+                        let filmeInserido = await filmeDAO.selectLastInsertId();
+                        let idFilme = filmeInserido[0].id;
+                        
+                        // Para cada gênero no array, cria a relação
+                        for (let genero of filme.genero) {
+                            if (genero.id && !isNaN(genero.id)) {
+                                let filmeGenero = {
+                                    id_filme: idFilme,
+                                    id_genero: genero.id
+                                };
+                                await filmeGeneroDAO.insertFilmeGenero(filmeGenero);
+                            }
+                        }
+                    }
+                    return message.SUCCESS_CREATED_ITEM; //201
+                } else {
+                    return message.ERROR_INTERNAL_SERVER_MODEL; //500
+                }
+            }
+        } else {
+            return message.ERROR_CONTENT_TYPE; //415
+        }
+    } catch (error) {
+        console.error(error);
+        return message.ERROR_INTERNAL_SERVER_CONTROLLER; //500
+    }
 }
+
 
 //funcao para tratar a atualizacao de um filme no DAO
 const atualizarFilme=async function(id, filme, contentType){

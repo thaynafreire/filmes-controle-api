@@ -62,11 +62,11 @@ const atualizarGenero = async function(id, genero, contentType){
                         genero.id = parseInt(id)
                         let result = await generoDAO.updateGenero(genero)
 
-                        if (result)
+                        if (result){
                             return message.SUCCESS_UPDATED_ITEM //200
-                        else
+                        }else{
                             return message.ERROR_INTERNAL_SERVER_MODEL //500
-                        
+                        }
                     }else{
                         return message.ERROR_NOT_FOUND //404
                     }
