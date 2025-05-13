@@ -35,7 +35,7 @@ const insertDiretor = async function(diretor){
     } catch (error) {
         return false
     }
-}
+}   
 
 
 //atualizar diretor
@@ -112,10 +112,25 @@ const selectByIdDiretor = async function(id) {
     }
 }
 
+const selectLastInsertId = async function() {
+    try {
+        let sql = 'select id from tbl_diretor order by id desc limit 1';
+        let result = await prisma.$queryRawUnsafe(sql);
+        if(result)
+            return result;
+        else
+            return false;
+    } catch (error) {
+        console.log(error);
+        return false;
+    }
+}
+
 module.exports = {
     insertDiretor,
     updateDiretor,
     deleteDiretor,
     selectAllDiretor,
-    selectByIdDiretor
+    selectByIdDiretor,
+    selectLastInsertId
 }

@@ -84,6 +84,19 @@ const inserirFilme = async function(filme, contentType) {
                             }
                         }
                     }
+                    // Se houver diretores para associar 
+                    if (filme.diretores && Array.isArray(filme.diretores)) {
+                        for (let diretor of filme.diretores) {
+                            if (diretor.id && !isNaN(diretor.id)) {
+                                let filmeDiretor = {
+                                    id_filme: idFilme,
+                                    id_diretor: diretor.id
+                                };
+                                await filmeDiretorDAO.insertFilmeDiretor(filmeDiretor);
+                            }
+                        }
+                    }
+                    
                     return message.SUCCESS_CREATED_ITEM; //201
                 } else {
                     return message.ERROR_INTERNAL_SERVER_MODEL; //500
